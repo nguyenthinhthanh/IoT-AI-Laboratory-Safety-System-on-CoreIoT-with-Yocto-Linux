@@ -16,6 +16,8 @@ target_include_directories(lsmy-hello
 
 set_target_properties(lsmy-hello PROPERTIES
     OUTPUT_NAME lsmy_hello
+    VERSION 1.0.0
+    SOVERSION 1
 )
 
 install(TARGETS lsmy-hello
