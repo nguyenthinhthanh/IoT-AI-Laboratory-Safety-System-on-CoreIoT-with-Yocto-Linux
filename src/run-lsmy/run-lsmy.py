@@ -2,7 +2,7 @@
 import ctypes
 
 # Load shared library
-lib = ctypes.CDLL("/usr/lib/liblsmy_hello.so")
+lib = ctypes.CDLL("/usr/lib/liblsmy_hello.so.1")
 
 # Define the function signature
 lib.hello_print.restype = None
