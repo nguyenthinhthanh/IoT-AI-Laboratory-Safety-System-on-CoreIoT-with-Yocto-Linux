@@ -1,6 +1,8 @@
 #!/usr/bin/python3
 import ctypes
+import sys
 import time
+import logging
 
 ############################################
 # PYTHON LIBRARY FOR LSMY LAB MONITORING   #
@@ -35,11 +37,39 @@ lib.hello_print.argtypes = []
 ############################################
 
 
-while True:
-    # Call the function from the shared library
-    lib.hello_print()
+# -------------------------
+# Logging Configuration
+# -------------------------
+logging.basicConfig(
+    level=logging.INFO,
+    format="%(asctime)s [%(levelname)s] %(message)s",
+    handlers=[
+        logging.StreamHandler(sys.stdout)
+    ]
+)
 
-    # Call the Python function
-    say_hello()
+log = logging.getLogger("run-lsmy")
 
-    time.sleep(5)
+
+def main():
+    log.info("############################################")
+    log.info("#           LSMY SYSTEM STARTUP            #")
+    log.info("############################################")
+
+
+    while True:
+        try:
+            # Call the function from the shared library
+            lib.hello_print()
+
+            # Call the Python function
+            say_hello()
+
+            time.sleep(5)
+
+        except Exception as e:
+            log.exception("Fatal error in main loop")
+            time.sleep(2)
+
+if __name__ == "__main__":
+    main()
