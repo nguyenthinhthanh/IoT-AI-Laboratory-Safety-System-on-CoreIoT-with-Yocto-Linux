@@ -4,4 +4,5 @@
 void hello_print(void)
 {
     printf("Hello world from C!\n");
+    fflush(stdout);
 }
