@@ -1,6 +1,6 @@
 #!/usr/bin/python3
 import ctypes
-from time import time
+import time
 
 ############################################
 # PYTHON LIBRARY FOR LSMY LAB MONITORING   #
