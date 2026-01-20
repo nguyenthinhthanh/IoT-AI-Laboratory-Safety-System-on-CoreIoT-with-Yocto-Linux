@@ -3,5 +3,5 @@
 
 void hello_print(void)
 {
-    printf("Hello world from C! with devtool\n");
+    printf("Hello world from C!\n");
 }
