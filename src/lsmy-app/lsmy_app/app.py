@@ -40,6 +40,9 @@ from enum import Enum, auto
 # ====== HELLO WORLD LIBRARY ======
 from lsmy_python_lib.hello import say_hello
 
+# ====== WEBSERVER LIBRARY ======
+from lsmy_webserver.main import webserver_say_hello
+
 # ====== ANOTHER LIBRARY ======
 # Additional Python library imports can go here
 
@@ -165,6 +168,8 @@ class LsmyApplication:
 
         # Call the Python function
         say_hello()
+
+        webserver_say_hello()
 
         pass
 
