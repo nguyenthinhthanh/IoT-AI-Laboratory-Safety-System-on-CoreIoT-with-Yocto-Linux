@@ -1,40 +1,32 @@
 #!/usr/bin/python3
-import ctypes
+# =============================================================================
+#  LSMY System Entrypoint
+# -----------------------------------------------------------------------------
+#  File        : run_lsmy.py
+#  Role        : Application entrypoint
+#
+#  Responsibilities:
+#   - Initialize runtime environment
+#   - Bootstrap LSMY application
+#   - Start main application loop
+#   - Handle top-level exceptions & exit codes
+#
+#  IMPORTANT:
+#   - No business logic here
+#   - Keep this file minimal and clean
+#   - All logic must live inside lsmy-python-app package
+# =============================================================================
+
 import sys
-import time
+import ctypes
 import logging
 
 ############################################
-# PYTHON LIBRARY FOR LSMY LAB MONITORING   #
-# - LSMY Hello World Library Example       #
-# - Another Library Example                #
+# PYTHON APPLICATION FOR LSMY              #
+# - LSMY Application                       #
+# - All logic must live inside here        #
 ############################################
-
-# ====== HELLO WORLD LIBRARY ======
-from lsmy_python_lib.hello import say_hello
-
-# ====== ANOTHER LIBRARY ======
-
-############################################
-
-
-
-############################################
-# C/C++ LIBRARY FOR LSMY LAB MONITORING    #
-# - LSMY Hello World Library Example       #
-# - Another Library Example                #
-############################################
-
-# ====== HELLO WORLD LIBRARY ======
-lib = ctypes.CDLL("/usr/lib/liblsmy_hello.so.1")
-
-# Define the function signature
-lib.hello_print.restype = None
-lib.hello_print.argtypes = []
-
-# ====== ANOTHER LIBRARY ======
-
-############################################
+from lsmy_python_app.app import LsmyApplication
 
 
 # -------------------------
@@ -51,25 +43,37 @@ logging.basicConfig(
 log = logging.getLogger("run-lsmy")
 
 
-def main():
-    log.info("############################################")
-    log.info("#           LSMY SYSTEM STARTUP            #")
-    log.info("############################################")
+# -------------------------
+# Main entrypoint
+# -------------------------
+def main() -> int:
+    """
+    Main process entrypoint.
+
+    Returns:
+        int: Unix exit code
+             0   -> Normal exit
+             !=0 -> Error
+    """
+
+    try:
+        app = LsmyApplication()
+        app.start()
+
+    except KeyboardInterrupt:
+        log.warning("Shutdown requested by user with KeyboardInterrupt)")
+        return 0
+
+    except Exception as exc:
+        log.exception("Fatal error during application startup")
+        return 1
+
+    log.info("LSMY System exited normally")
+    return 0
 
 
-    while True:
-        try:
-            # Call the function from the shared library
-            lib.hello_print()
-
-            # Call the Python function
-            say_hello()
-
-            time.sleep(5)
-
-        except Exception as e:
-            log.exception("Fatal error in main loop")
-            time.sleep(2)
-
+# -------------------------
+# Process bootstrap
+# -------------------------
 if __name__ == "__main__":
-    main()
+    sys.exit(main())
