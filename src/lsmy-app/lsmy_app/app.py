@@ -1,7 +1,7 @@
 # =============================================================================
-#  LSMY Python Application Runtime
+#  LSMY Application Runtime
 # -----------------------------------------------------------------------------
-#  Package     : lsmy_python_app
+#  Package     : lsmy_app
 #  Role        : Main application runtime
 #
 #  Responsibilities:

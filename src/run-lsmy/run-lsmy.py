@@ -39,7 +39,7 @@ log = logging.getLogger("run-lsmy")
 # - LSMY Application                       #
 # - All logic must live inside here        #
 ############################################
-from lsmy_python_app.app import LsmyApplication
+from lsmy_app.app import LsmyApplication
 
 
 # -------------------------
