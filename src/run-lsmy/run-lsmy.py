@@ -21,14 +21,6 @@ import sys
 import ctypes
 import logging
 
-############################################
-# PYTHON APPLICATION FOR LSMY              #
-# - LSMY Application                       #
-# - All logic must live inside here        #
-############################################
-from lsmy_python_app.app import LsmyApplication
-
-
 # -------------------------
 # Logging Configuration
 # -------------------------
@@ -41,6 +33,13 @@ logging.basicConfig(
 )
 
 log = logging.getLogger("run-lsmy")
+
+############################################
+# PYTHON APPLICATION FOR LSMY              #
+# - LSMY Application                       #
+# - All logic must live inside here        #
+############################################
+from lsmy_python_app.app import LsmyApplication
 
 
 # -------------------------
