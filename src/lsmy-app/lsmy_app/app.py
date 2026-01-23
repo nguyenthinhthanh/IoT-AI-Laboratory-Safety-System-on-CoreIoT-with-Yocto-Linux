@@ -40,6 +40,9 @@ from enum import Enum, auto
 # ====== HELLO WORLD LIBRARY ======
 from lsmy_python_lib.hello import say_hello
 
+# ====== WIFI MODE LIBRARY ======
+from lsmy_python_lib.wifi_mode_manager import WiFiModeManager, WiFiMode
+
 # ====== WEBSERVER LIBRARY ======
 from lsmy_webserver.main import webserver_say_hello
 
@@ -171,7 +174,11 @@ class LsmyApplication:
 
         webserver_say_hello()
 
-        pass
+        # WifiModeManager
+        wifi_manager = WiFiModeManager()
+        wifi_manager.switch_to_ap()
+        while True:
+            pass
 
     # -------- Subsystems --------
     def _init_sensor_subsystem(self):

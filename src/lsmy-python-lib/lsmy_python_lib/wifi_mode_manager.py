@@ -17,7 +17,8 @@ class WiFiMode(Enum):
 
 class WiFiModeManager:
     def __init__(self):
-        log.info("WiFiModeManager initialized")
+        self.mode = WiFiMode.STA
+        log.info("WiFiModeManager initialized with mode=%s", self.mode.value)
 
     def _run(self, cmd: list[str], check: bool = True):
         log.debug("Running command: %s", " ".join(cmd))
@@ -74,6 +75,7 @@ class WiFiModeManager:
 
     def switch_to_ap(self):
         log.info("========== SWITCH TO AP MODE ==========")
+        self.mode = WiFiMode.AP
 
         self._link_network(AP_NETWORK_FILE)
         self._restart_networkd()
@@ -87,6 +89,7 @@ class WiFiModeManager:
 
     def switch_to_sta(self):
         log.info("========== SWITCH TO STA MODE ==========")
+        self.mode = WiFiMode.STA
 
         self._link_network(STA_NETWORK_FILE)
         self._restart_networkd()
