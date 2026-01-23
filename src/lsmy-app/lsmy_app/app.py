@@ -42,6 +42,7 @@ from lsmy_python_lib.hello import say_hello
 
 # ====== WIFI MODE LIBRARY ======
 from lsmy_python_lib.wifi_mode_manager import WiFiModeManager, WiFiMode
+from lsmy_python_lib.wifi_mode_manager import cleanup_wifi
 
 # ====== WEBSERVER LIBRARY ======
 from lsmy_webserver.main import webserver_say_hello
@@ -142,6 +143,9 @@ class LsmyApplication:
 
     def _stop_services(self):
         log.info("Stopping core services")
+
+        log.info("Stopping wifi mode services")
+        cleanup_wifi()
         pass
 
     # -------- Signals --------
@@ -156,6 +160,10 @@ class LsmyApplication:
     # -------- Main loop --------
     def _main_loop(self):
         log.info("Entering main application loop")
+
+        # WifiModeManager
+        wifi_manager = WiFiModeManager()
+        wifi_manager.switch_to_ap()
 
         while self.running:
             self._run_cycle()
@@ -174,11 +182,7 @@ class LsmyApplication:
 
         webserver_say_hello()
 
-        # WifiModeManager
-        wifi_manager = WiFiModeManager()
-        wifi_manager.switch_to_ap()
-        while True:
-            pass
+        pass
 
     # -------- Subsystems --------
     def _init_sensor_subsystem(self):

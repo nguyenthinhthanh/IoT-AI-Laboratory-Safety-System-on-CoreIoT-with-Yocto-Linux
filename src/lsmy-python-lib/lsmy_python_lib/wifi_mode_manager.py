@@ -14,6 +14,26 @@ class WiFiMode(Enum):
     AP = "ap"
     STA = "sta"
 
+# Cleanup function to reset WiFi state
+def cleanup_wifi(self):
+    log.info("========== CLEANUP WIFI STATE ==========")
+
+    # Stop AP-related services
+    self._run(["systemctl", "stop", "hostapd"], check=False)
+    self._run(["systemctl", "stop", "dnsmasq"], check=False)
+
+    # Stop STA service
+    self._run(["systemctl", "stop", "wpa_supplicant"], check=False)
+
+    # Restore default network config (STA)
+    self._link_network(STA_NETWORK_FILE)
+
+    # Restart network stack
+    self._restart_networkd()
+
+    self.mode = WiFiMode.STA
+    log.info("WiFi state cleaned, system returned to STA baseline")
+
 
 class WiFiModeManager:
     def __init__(self):
