@@ -41,8 +41,7 @@ from enum import Enum, auto
 from lsmy_python_lib.hello import say_hello
 
 # ====== WIFI MODE LIBRARY ======
-from lsmy_python_lib.wifi_mode_manager import WiFiModeManager, WiFiMode
-from lsmy_python_lib.wifi_mode_manager import cleanup_wifi
+from lsmy_python_lib.wifi_mode_manager import WiFiModeManager
 
 # ====== WEBSERVER LIBRARY ======
 from lsmy_webserver.main import webserver_say_hello
@@ -94,6 +93,8 @@ class LsmyApplication:
     #-------- Constructor --------
     def __init__(self):
         self.state = AppState.INIT
+        # WifiModeManager
+        self.wifi_manager = WiFiModeManager()
         self.running = False
 
     # -------- Public lifecycle --------
@@ -145,7 +146,7 @@ class LsmyApplication:
         log.info("Stopping core services")
 
         log.info("Stopping wifi mode services")
-        cleanup_wifi()
+        self.wifi_manager.cleanup_wifi()
         pass
 
     # -------- Signals --------
@@ -161,9 +162,8 @@ class LsmyApplication:
     def _main_loop(self):
         log.info("Entering main application loop")
 
-        # WifiModeManager
-        wifi_manager = WiFiModeManager()
-        wifi_manager.switch_to_ap()
+        # WifiModeManager: Switch to AP mode on startup
+        self.wifi_manager.switch_to_ap()
 
         while self.running:
             self._run_cycle()
