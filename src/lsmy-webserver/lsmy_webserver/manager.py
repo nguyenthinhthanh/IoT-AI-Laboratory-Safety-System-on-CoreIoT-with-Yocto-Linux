@@ -72,6 +72,9 @@ class ProvisionWebserverManager:
         self._run_with_retry(
             ["systemctl", "start", self.BACKEND_SERVICE]
         )
+
+        if not self.is_running():
+            raise RuntimeError("Failed to start provisioning webserver services")
         log.info("Provisioning webserver successfully started")
 
     def stop(self):
