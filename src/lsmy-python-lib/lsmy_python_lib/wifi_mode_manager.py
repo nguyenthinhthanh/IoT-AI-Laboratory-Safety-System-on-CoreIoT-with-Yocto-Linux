@@ -22,7 +22,16 @@ class WiFiModeManager:
 
     def _run(self, cmd: list[str], check: bool = True):
         log.debug("Running command: %s", " ".join(cmd))
-        result = subprocess.run(cmd, check=check)
+        result = subprocess.run(cmd, check=check, capture_output=True, text=True,)
+
+        if result.returncode != 0:
+            log.error(
+                "Command failed (%d): %s | stderr=%s",
+                result.returncode,
+                " ".join(cmd),
+                result.stderr.strip(),
+            )
+
         return result.returncode == 0
 
     def _run_with_retry(
