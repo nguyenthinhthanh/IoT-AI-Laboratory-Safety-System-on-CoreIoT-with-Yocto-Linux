@@ -44,7 +44,8 @@ from lsmy_python_lib.hello import say_hello
 from lsmy_python_lib.wifi_mode_manager import WiFiModeManager
 
 # ====== WEBSERVER LIBRARY ======
-from lsmy_webserver.main import webserver_say_hello
+from lsmy_webserver.manager import ProvisionWebserverManager
+
 
 # ====== ANOTHER LIBRARY ======
 # Additional Python library imports can go here
@@ -95,6 +96,7 @@ class LsmyApplication:
         self.state = AppState.INIT
         # WifiModeManager
         self.wifi_manager = WiFiModeManager()
+        self.provision_webserver_manager = ProvisionWebserverManager()
         self.running = False
 
     # -------- Public lifecycle --------
@@ -147,6 +149,7 @@ class LsmyApplication:
 
         log.info("Stopping wifi mode services")
         self.wifi_manager.cleanup_wifi()
+        self.provision_webserver_manager.stop()
         pass
 
     # -------- Signals --------
@@ -164,6 +167,7 @@ class LsmyApplication:
 
         # WifiModeManager: Switch to AP mode on startup
         self.wifi_manager.switch_to_ap()
+        self.provision_webserver_manager.start()
 
         while self.running:
             self._run_cycle()
@@ -175,12 +179,10 @@ class LsmyApplication:
         Placeholder for sensor polling, AI inference, and data publishing.
         """
         # Call the function from the shared library
-        lib.hello_print()
+        # lib.hello_print()
 
         # Call the Python function
-        say_hello()
-
-        webserver_say_hello()
+        # say_hello()
 
         pass
 
