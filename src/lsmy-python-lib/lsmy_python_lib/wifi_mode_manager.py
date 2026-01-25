@@ -72,9 +72,13 @@ class WiFiModeManager:
 
         run_cmd(["systemctl", "stop", "hostapd"])
         run_cmd(["systemctl", "stop", "dnsmasq"])
-        run_cmd(["systemctl", "start", "wpa_supplicant"])
+        run_cmd(["systemctl", "enable", "wpa_supplicant"])
 
         log.info("STA mode enabled")
+
+    def start_sta_services(self):
+        log.info("Starting STA services...")
+        run_cmd(["systemctl", "start", "wpa_supplicant"])
 
     # Cleanup function to reset WiFi state
     def cleanup_wifi(self):
@@ -94,3 +98,68 @@ class WiFiModeManager:
 
         self.mode = WiFiMode.STA
         log.info("WiFi state cleaned, system returned to STA baseline")
+
+    # Get current WiFi role
+    def get_wifi_role(self, iface: str = "wlan0") -> str:
+        # Detect WiFi role using iw:
+        # - STA  -> type managed
+        # - AP   -> type AP
+        result = subprocess.run(
+            ["iw", "dev", iface, "info"],
+            stdout=subprocess.PIPE,
+            stderr=subprocess.PIPE,
+            text=True,
+        )
+
+        if result.returncode != 0:
+            log.warning("iw failed: %s", result.stderr.strip())
+            return "UNKNOWN"
+
+        output = result.stdout
+
+        if "type AP" in output:
+            return "AP"
+        if "type managed" in output:
+            return "STA"
+
+        return "UNKNOWN"
+
+    # Check if interface has default ip
+    def has_ip(self, iface: str = "wlan0") -> bool:
+        # Check if interface has an IPv4 address
+        result = subprocess.run(
+            ["ip", "-4", "addr", "show", iface],
+            stdout=subprocess.PIPE,
+            stderr=subprocess.PIPE,
+            text=True,
+        )
+
+        if result.returncode != 0:
+            return False
+
+        return "inet " in result.stdout
+
+    # Check if interface has default route
+    def has_default_route(self, iface: str = "wlan0") -> bool:
+        # Check if default route exists on interface
+        result = subprocess.run(
+            ["ip", "route", "show", "default"],
+            stdout=subprocess.PIPE,
+            stderr=subprocess.PIPE,
+            text=True,
+        )
+
+        if result.returncode != 0:
+            return False
+
+        return iface in result.stdout
+
+    # Check is wifi is connected
+    def is_wifi_connected(self) -> bool:
+        # STA mode + has IP + has default route => WiFi usable
+        return (
+            self.get_wifi_role() == "STA"
+            and self.has_ip("wlan0")
+            and self.has_default_route("wlan0")
+        )
+

@@ -12,6 +12,9 @@ from periphery import GPIO
 # ====== IPC LIBRARY ======
 from lsmy_python_lib.ipc import ipc_server_task, LAST_TELEMETRY
 
+# ====== WIFI CONFIG LIBRARY ======
+from lsmy_python_lib.wifi_config_manager import configure_wifi
+
 logging.basicConfig(
     level=logging.INFO,
     format="%(asctime)s [%(levelname)s] %(message)s",
@@ -117,46 +120,6 @@ async def telemetry_task():
             log.info("TX telemetry: %s", msg)
 
         await asyncio.sleep(5)  
-
-# Helper function
-def configure_wifi(ssid, password):
-    config_path = "/etc/wpa_supplicant.conf"
-    log.info("Processing WiFi config for: %s", ssid)
-
-    if password:
-        new_network = f'network={{\n    ssid="{ssid}"\n    psk="{password}"\n}}'
-    else:
-        new_network = f'network={{\n    ssid="{ssid}"\n    key_mgmt=NONE\n}}'
-
-    header_lines = [
-        "ctrl_interface=/var/run/wpa_supplicant",
-        "ctrl_interface_group=0",
-        "update_config=1",
-        "country=VN"
-    ]
-    
-    existing_networks = []
-    
-    if os.path.exists(config_path):
-            with open(config_path, "r") as f:
-                content = f.read()
-                
-            networks = re.findall(r'network\s*=\{.*?\n\}', content, re.DOTALL)
-            
-            for net in networks:
-                if not re.search(f'ssid\s*=\s*"{re.escape(ssid)}"', net):
-                    existing_networks.append(net.strip())
-                else:
-                    log.info("Found old config for '%s', replacing it...", ssid)
-
-    existing_networks.append(new_network)
-
-    with open(config_path, "w") as f:
-        f.write("\n".join(header_lines) + "\n\n")
-        f.write("\n\n".join(existing_networks) + "\n")
-
-    log.info("Saved WiFi '%s' successfully. Total networks remembered: %d", 
-             ssid, len(existing_networks))
     
 def read_sensors():
     return {

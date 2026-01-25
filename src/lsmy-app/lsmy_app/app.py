@@ -43,9 +43,14 @@ from lsmy_python_lib.hello import say_hello
 # ====== WIFI MODE LIBRARY ======
 from lsmy_python_lib.wifi_mode_manager import WiFiModeManager
 
+# ====== WIFI CONFIG LIBRARY ======
+from lsmy_python_lib.wifi_config_manager import WiFiConfigManager
+
 # ====== WEBSERVER LIBRARY ======
 from lsmy_webserver.manager import ProvisionWebserverManager
 
+# ====== IPC LIBRARY ======
+from lsmy_python_lib.ipc import send_telemetry_ipc
 
 # ====== ANOTHER LIBRARY ======
 # Additional Python library imports can go here
@@ -96,6 +101,7 @@ class LsmyApplication:
         self.state = AppState.INIT
         # WifiModeManager
         self.wifi_manager = WiFiModeManager()
+        self.wifi_config_manager = WiFiConfigManager()
         self.provision_webserver_manager = ProvisionWebserverManager()
         self.running = False
 
@@ -170,6 +176,57 @@ class LsmyApplication:
         self.provision_webserver_manager.start()
 
         while self.running:
+            # Main logic connections here
+            if self.wifi_manager.is_wifi_connected():
+                # Wifi connected, connect to CoreIoT
+                log.info("WiFi connected, system operational")
+                pass
+            else:
+                # Wifi not connected
+                wifi_mode = self.wifi_manager.get_wifi_role()
+                log.info(f"Current WiFi mode: {wifi_mode}")
+
+                if wifi_mode == "STA":
+                    # In STA mode but not connected, first try to connection
+                    if self.wifi_config_manager.has_any_wifi_config():
+                        log.info("Attempting to connect to WiFi in STA mode")
+                        self.wifi_manager.switch_to_sta()
+                        self.wifi_manager.start_sta_services()
+
+                        log.info(f"Waiting for wlan0 to connect...")
+                        if self.wifi_config_manager.is_wait_for_wifi():
+                            self.wifi_config_manager.request_ip(interface="wlan0")
+                        else:
+                            log.info("WiFi connection failed, switching to AP mode")
+                            self.wifi_manager.switch_to_ap()
+                            self.provision_webserver_manager.start() 
+                    else:
+                        log.info("No WiFi config found, switching to AP mode")
+                        self.wifi_manager.switch_to_ap()
+                        self.provision_webserver_manager.start()
+                elif wifi_mode == "AP":
+                    # Check if have any wifi config
+                    is_have_wifi_config = self.wifi_config_manager.get_wifi_config_signal()
+                    log.info(f"Is have WiFi config: {is_have_wifi_config}")
+
+                    # In AP mode, stay in AP mode
+                    if (not self.provision_webserver_manager.is_running()) and (not is_have_wifi_config):
+                        log.info("Provisioning webserver not running, starting it")
+                        self.wifi_manager.switch_to_ap()
+                        self.provision_webserver_manager.start()
+                    else:
+                        log.info("Staying in AP mode, waiting for user configuration")
+
+                        # If have update wifi config, switch to STA mode
+                        if is_have_wifi_config:
+                            log.info("WiFi config found, switching to STA mode")
+                            self.wifi_manager.switch_to_sta()
+                            self.provision_webserver_manager.stop()
+                else:
+                    log.warning("Unknown WiFi mode, switching to STA mode")
+                    self.wifi_manager.cleanup_wifi()
+                    self.provision_webserver_manager.stop()
+
             self._run_cycle()
             time.sleep(5)
 
