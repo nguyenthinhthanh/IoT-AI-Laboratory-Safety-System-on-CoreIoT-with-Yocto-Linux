@@ -7,7 +7,7 @@ import json
 import subprocess
 import logging
 import websockets
-import gpiod
+from periphery import GPIO
 
 logging.basicConfig(
     level=logging.INFO,
@@ -160,24 +160,23 @@ def read_sensors():
         "pm25": round(random.uniform(5, 40), 1),
     }
 
-GPIO_CHIP = "gpiochip0"
-
 def set_gpio(gpio_num: int, on: bool):
-    line_value = 1 if on else 0
+    value = True if on else False
 
-    chip = gpiod.Chip(GPIO_CHIP)
-    line = chip.get_line(gpio_num)
+    try:
+        gpio = GPIO(gpio_num, "out")
+        gpio.write(value)
+        gpio.close()
 
-    line.request(
-        consumer="lsmy-relay",
-        type=gpiod.LINE_REQ_DIR_OUT,
-        default_val=0
-    )
+        log.info(
+            "GPIO %d set to %s",
+            gpio_num,
+            "ON" if on else "OFF"
+        )
 
-    line.set_value(line_value)
-    line.release()
-
-    log.info("GPIO %d set to %s", gpio_num, "ON" if on else "OFF")
+    except Exception as e:
+        log.error("GPIO %d control failed: %s", gpio_num, e)
+        raise
 
 def shutdown_provision():
     subprocess.run(["systemctl", "stop", "provision-web-backend"])
