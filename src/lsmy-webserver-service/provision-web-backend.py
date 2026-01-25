@@ -20,6 +20,7 @@ log = logging.getLogger("provision-webserver-backend")
 
 clients = set()
 WS_PORT = 8765
+SOCK = "/run/lsmy/provision.sock"
 
 # WebSocket handler
 async def handle(ws):
@@ -109,6 +110,48 @@ async def telemetry_task():
 
         await asyncio.sleep(5)  
 
+# IPC server handler
+LAST_TELEMETRY = {
+    "temperature": 0.0,
+    "humidity": 0.0,
+    "no2": 0.0,
+    "pm10": 0.0,
+    "pm25": 0.0,
+}
+
+async def handle_client(reader, writer):
+    try:
+        data = await reader.readline()
+        if not data:
+            return
+
+        req = json.loads(data.decode())
+        log.info("IPC RX: %s", req)
+
+        if req.get("cmd") == "send_telemetry":
+            telemetry = {
+                "temperature": float(req.get("temperature", 0)),
+                "humidity": float(req.get("humidity", 0)),
+                "no2": float(req.get("no2", 0)),
+                "pm10": float(req.get("pm10", 0)),
+                "pm25": float(req.get("pm25", 0)),
+            }
+
+            log.info("Telemetry received: %s", telemetry)
+
+            LAST_TELEMETRY.update(telemetry)
+
+            resp = {"status": "ok"}
+        else:
+            resp = {"status": "error", "error": "Unknown command"}
+
+        writer.write((json.dumps(resp) + "\n").encode())
+        await writer.drain()
+
+    except Exception:
+        log.exception("IPC handler error")
+    finally:
+        writer.close()
 
 # Helper function
 def configure_wifi(ssid, password):
@@ -151,13 +194,12 @@ def configure_wifi(ssid, password):
              ssid, len(existing_networks))
     
 def read_sensors():
-    import random
     return {
-        "temperature": round(random.uniform(25, 35), 1),
-        "humidity": round(random.uniform(40, 70), 1),
-        "no2": round(random.uniform(0.01, 0.08), 3),
-        "pm10": round(random.uniform(10, 60), 1),
-        "pm25": round(random.uniform(5, 40), 1),
+        "temperature": LAST_TELEMETRY["temperature"],
+        "humidity":    LAST_TELEMETRY["humidity"],
+        "no2":         LAST_TELEMETRY["no2"],
+        "pm10":        LAST_TELEMETRY["pm10"],
+        "pm25":        LAST_TELEMETRY["pm25"],
     }
 
 def set_gpio(gpio_num: int, on: bool):
@@ -183,6 +225,18 @@ def shutdown_provision():
 
 
 async def main():
+    # IPC server setup
+    if os.path.exists(SOCK):
+        os.unlink(SOCK)
+
+    server = await asyncio.start_unix_server(handle_client, path=SOCK)
+    os.chmod(SOCK, 0o660)
+
+    log.info("IPC server listening on %s", SOCK)
+    async with server:
+        await server.serve_forever()
+
+    # WebSocket server setup
     async with websockets.serve(handle, "0.0.0.0", WS_PORT):
         log.info("WiFi provision WS running on %d", WS_PORT)
 
