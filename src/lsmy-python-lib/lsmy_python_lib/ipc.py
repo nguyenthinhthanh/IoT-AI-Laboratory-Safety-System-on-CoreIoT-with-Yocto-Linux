@@ -49,6 +49,30 @@ async def handle_client(reader, writer):
     finally:
         writer.close()
 
+async def send_telemetry_ipc(data: dict, timeout=3):
+    reader, writer = await asyncio.wait_for(
+        asyncio.open_unix_connection(SOCK),
+        timeout=timeout
+    )
+
+    msg = {
+        "cmd": "send_telemetry",
+        "temperature": data.get("temperature", 0),
+        "humidity": data.get("humidity", 0),
+        "no2": data.get("no2", 0),
+        "pm10": data.get("pm10", 0),
+        "pm25": data.get("pm25", 0),
+    }
+
+    writer.write((json.dumps(msg) + "\n").encode())
+    await writer.drain()
+
+    resp = await reader.readline()
+    writer.close()
+
+    return json.loads(resp.decode())
+
+
 async def ipc_server_task():
     if os.path.exists(SOCK):
         os.unlink(SOCK)
