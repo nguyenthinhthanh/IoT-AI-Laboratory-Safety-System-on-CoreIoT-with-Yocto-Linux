@@ -187,7 +187,7 @@ class LsmyApplication:
 
                 if self.print_wifi_info:
                     self.print_wifi_info = False
-                    wifi_info = self.wifi_manager.get_wifi_status_iw("wlan0")
+                    wifi_info = self.wifi_config_manager.get_wifi_status_iw("wlan0")
         
                     if wifi_info:
                         log.info("========== WIFI CONNECTED ==========")
