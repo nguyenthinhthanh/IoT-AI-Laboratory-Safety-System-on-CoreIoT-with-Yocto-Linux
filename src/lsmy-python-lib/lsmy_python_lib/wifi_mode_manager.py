@@ -168,6 +168,8 @@ class WiFiModeManager:
         
         if "Connected to" in result.stdout:
             iw_dev_result = True
+        else: 
+            iw_dev_result = False
 
         return (
             self.get_wifi_role() == "STA"

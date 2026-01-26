@@ -86,7 +86,7 @@ class WiFiConfigManager:
         log.info("Requesting IP address for %s...", interface)
         subprocess.run(["udhcpc", "-i", interface, "-n", "-q"], check=False)
 
-    def get_wifi_status_iw(iface="wlan0"):
+    def get_wifi_status_iw(self, iface="wlan0"):
         info = {"connected": False, "ssid": None, "ip": None, "signal": None}
         
         try:
