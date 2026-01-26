@@ -548,6 +548,7 @@ body {
 /* Save Button */
 .btn-save {
   margin-top   : 25px;
+  width: 400px;
   background   : linear-gradient(90deg, #2294F2, #1b7fe0);
   color        : white;
   border       : none;
@@ -563,6 +564,38 @@ body {
 .btn-save:hover {
   transform : translateY(-2px);
   box-shadow: 0 8px 22px rgba(34, 148, 242, 0.55);
+}
+
+/* Connect Button */
+.btn-connect {
+  margin-top   : 25px;
+  background   : linear-gradient(90deg, #00F260, #2ecc71);
+  color        : white;
+  border       : none;
+  border-radius: 12px;
+  padding      : 16px 44px;
+  font-size    : 15px;
+  font-weight  : 600;
+  cursor       : pointer;
+  box-shadow   : 0 6px 18px rgba(34, 148, 242, 0.45);
+  transition   : all 0.3s ease;
+}
+
+.btn-connect:hover {
+  transform : translateY(-2px);
+  box-shadow: 0 8px 22px rgba(34, 148, 242, 0.55);
+}
+
+/* Group buttons setting */
+.button-group-setting {
+  display: flex;       
+  gap: 80px;           
+  justify-content: center;
+}
+
+.button-group-setting button {
+  flex: 1;             
+  max-width: 500px;  
 }
 
 

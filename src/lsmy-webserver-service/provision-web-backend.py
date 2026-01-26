@@ -13,7 +13,7 @@ from periphery import GPIO
 from lsmy_python_lib.ipc import ipc_server_task, LAST_TELEMETRY
 
 # ====== WIFI CONFIG LIBRARY ======
-from lsmy_python_lib.wifi_config_manager import configure_wifi
+from lsmy_python_lib.wifi_config_manager import configure_wifi, update_wifi_connect_signal
 
 logging.basicConfig(
     level=logging.INFO,
@@ -39,6 +39,7 @@ async def handle(ws):
 
             # ================= SETTINGS =================
             if data.get("page") == "setting":
+                action = data.get("action")
                 ssid = data["value"]["ssid"]
                 password = data["value"]["password"]
 
@@ -51,12 +52,22 @@ async def handle(ws):
                         "msg": "SSID is required"
                     }))
                 else:
-                    configure_wifi(clean_ssid, clean_pw)
+                    if action == "connectBtn":
+                        # Update the wifi config signal
+                        update_wifi_connect_signal(True)
+                        await ws.send(json.dumps({
+                        "status": "ok",
+                        "msg": "WiFi connect signal successfully"
+                        }))
+                    elif action == "saveBtn":
+                        # Configure WiFi
+                        update_wifi_connect_signal(False)
+                        configure_wifi(clean_ssid, clean_pw)
 
-                    await ws.send(json.dumps({
-                    "status": "ok",
-                    "msg": "WiFi configured successfully"
-                    }))
+                        await ws.send(json.dumps({
+                        "status": "ok",
+                        "msg": "WiFi configured successfully"
+                        }))
             # ================= DEVICE / RELAY =================
             elif data.get("page") == "device":
                 log.info("Relay command: %s", data["value"])

@@ -16,15 +16,15 @@ HEADER_LINES = [
     "country=VN",
 ]
 
-IS_HAVE_WIFI_CONFIG_SIGNAL = False
+IS_HAVE_WIFI_CONNECT_SIGNAL = False
 
 class WiFiConfigManager:
     def __init__(self):
         log.info("WiFiConfigManager initialized")
 
-    # Get is_have_wifi_config signal
-    def get_wifi_config_signal(self) -> bool:
-        return IS_HAVE_WIFI_CONFIG_SIGNAL
+    # Get is_have_wifi_connect signal
+    def get_wifi_connect_signal(self) -> bool:
+        return IS_HAVE_WIFI_CONNECT_SIGNAL
 
     # Load WiFi configurations function
     def load_wifi_configs(self, config_path: str = WPA_CONF) -> List[Dict]:
@@ -86,12 +86,40 @@ class WiFiConfigManager:
         log.info("Requesting IP address for %s...", interface)
         subprocess.run(["udhcpc", "-i", interface, "-n", "-q"], check=False)
 
-# Update is_have_wifi_config signal
-def update_wifi_config_signal(value: bool):
-    global IS_HAVE_WIFI_CONFIG_SIGNAL
-    IS_HAVE_WIFI_CONFIG_SIGNAL = value
-    # log.info("WiFi config signal updated: %s", IS_HAVE_WIFI_CONFIG_SIGNAL)
-    
+    def get_wifi_status_iw(iface="wlan0"):
+        info = {"connected": False, "ssid": None, "ip": None, "signal": None}
+        
+        try:
+            res_link = subprocess.run(["iw", "dev", iface, "link"], capture_output=True, text=True)
+            link_output = res_link.stdout
+
+            if "Not connected" not in link_output and "SSID" in link_output:
+                info["connected"] = True
+                # SSID and signal
+                ssid_match = re.search(r"SSID:\s+(.*)", link_output)
+                signal_match = re.search(r"signal:\s+(-\d+\s+dBm)", link_output)
+                
+                if ssid_match: info["ssid"] = ssid_match.group(1).strip()
+                if signal_match: info["signal"] = signal_match.group(1).strip()
+
+                # Ip address
+                res_ip = subprocess.run(["ip", "-4", "addr", "show", iface], capture_output=True, text=True)
+                ip_match = re.search(r"inet\s+(\d+\.\d+\.\d+\.\d+)", res_ip.stdout)
+                if ip_match:
+                    info["ip"] = ip_match.group(1)
+
+            return info if info["connected"] else None
+
+        except Exception as e:
+            log.error(f"Fault using iw: {e}")
+            return None
+
+# Update is_have_wifi_connect signal
+def update_wifi_connect_signal(value: bool):
+    global IS_HAVE_WIFI_CONNECT_SIGNAL
+    IS_HAVE_WIFI_CONNECT_SIGNAL = value
+    # log.info("WiFi config signal updated: %s", IS_HAVE_WIFI_CONNECT_SIGNAL)
+
 # Configure WiFi function
 def configure_wifi(ssid, password):
     """
@@ -127,6 +155,3 @@ def configure_wifi(ssid, password):
 
     log.info("Saved WiFi '%s' successfully. Total networks remembered: %d", 
             ssid, len(existing_networks))
-    
-    # Update the wifi config signal
-    update_wifi_config_signal(True)

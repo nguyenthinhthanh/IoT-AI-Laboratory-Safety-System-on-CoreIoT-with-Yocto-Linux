@@ -313,6 +313,8 @@ function confirmDelete() {
 document.getElementById("settingsForm").addEventListener("submit", function (e) {
     e.preventDefault();
 
+    const action = e.submitter.id;
+
     const ssid = document.getElementById("ssid").value.trim();
     const password = document.getElementById("password").value.trim();
     const token = document.getElementById("token").value.trim();
@@ -321,6 +323,7 @@ document.getElementById("settingsForm").addEventListener("submit", function (e) 
 
     const settingsJSON = JSON.stringify({
         page: "setting",
+        action: action,
         value: {
             ssid: ssid,
             password: password,
