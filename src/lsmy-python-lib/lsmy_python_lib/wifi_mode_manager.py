@@ -6,6 +6,9 @@ from enum import Enum
 # ====== COMMAND RUNNER LIBRARY ======
 from lsmy_python_lib.command_runner import run_cmd, run_cmd_with_retry
 
+# ====== GLOBAL STORE LIBRARY ======
+from lsmy_python_lib.global_store import Global_Store
+
 log = logging.getLogger("wifi-mode")
 
 SYSTEMD_NETWORK_FILE = "/etc/systemd/network/10-wlan0.network"
@@ -63,6 +66,10 @@ class WiFiModeManager:
 
         log.info("AP mode enabled")
 
+        Global_Store.set("wifi_status", "DISCONNECTED")
+        Global_Store.set("is_ap_mode", True)
+        Global_Store.set("is_sta_mode", False)
+
     def switch_to_sta(self):
         log.info("========== SWITCH TO STA MODE ==========")
         self.mode = WiFiMode.STA
@@ -75,6 +82,10 @@ class WiFiModeManager:
         run_cmd(["systemctl", "enable", "wpa_supplicant"])
 
         log.info("STA mode enabled")
+
+        Global_Store.set("wifi_status", "DISCONNECTED")
+        Global_Store.set("is_ap_mode", False)
+        Global_Store.set("is_sta_mode", True)
 
     def start_sta_services(self):
         log.info("Starting STA services...")
@@ -98,6 +109,10 @@ class WiFiModeManager:
 
         self.mode = WiFiMode.STA
         log.info("WiFi state cleaned, system returned to STA baseline")
+
+        Global_Store.set("wifi_status", "DISCONNECTED")
+        Global_Store.set("is_ap_mode", False)
+        Global_Store.set("is_sta_mode", True)
 
     # Get current WiFi role
     def get_wifi_role(self, iface: str = "wlan0") -> str:

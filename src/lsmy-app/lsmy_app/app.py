@@ -58,6 +58,9 @@ from lsmy_python_lib.ipc import ipc_server_task
 # ====== BUTTON RESET LIBRARY ======
 from lsmy_python_lib.button_handler import monitor_button_reset
 
+# ====== GLOBAL STORE LIBRARY ======
+from lsmy_python_lib.global_store import Global_Store
+
 # ====== ANOTHER LIBRARY ======
 # Additional Python library imports can go here
 
@@ -204,6 +207,8 @@ class LsmyApplication:
                         log.info("====================================")
                     else:
                         log.info("WiFi connected, but could not retrieve detailed info.")
+
+                    Global_Store.set("wifi_status", "CONNECTED")
                 else:
                     log.info("WiFi connected, system operational")
             else:
