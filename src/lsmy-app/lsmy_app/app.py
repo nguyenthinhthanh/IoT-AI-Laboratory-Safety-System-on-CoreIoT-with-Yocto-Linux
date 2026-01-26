@@ -47,13 +47,13 @@ from lsmy_python_lib.wifi_mode_manager import WiFiModeManager
 
 # ====== WIFI CONFIG LIBRARY ======
 from lsmy_python_lib.wifi_config_manager import WiFiConfigManager
-from lsmy_python_lib.wifi_config_manager import update_wifi_connect_signal, ipc_server_task
+from lsmy_python_lib.wifi_config_manager import update_wifi_connect_signal
 
 # ====== WEBSERVER LIBRARY ======
 from lsmy_webserver.manager import ProvisionWebserverManager
 
 # ====== IPC LIBRARY ======
-from lsmy_python_lib.ipc import send_telemetry_ipc
+from lsmy_python_lib.ipc import send_telemetry_ipc, ipc_server_task
 
 # ====== ANOTHER LIBRARY ======
 # Additional Python library imports can go here
