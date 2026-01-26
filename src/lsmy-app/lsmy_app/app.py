@@ -55,6 +55,9 @@ from lsmy_webserver.manager import ProvisionWebserverManager
 # ====== IPC LIBRARY ======
 from lsmy_python_lib.ipc import ipc_server_task
 
+# ====== BUTTON RESET LIBRARY ======
+from lsmy_python_lib.button_handler import monitor_button_reset
+
 # ====== ANOTHER LIBRARY ======
 # Additional Python library imports can go here
 
@@ -175,6 +178,10 @@ class LsmyApplication:
     # -------- Main loop --------
     def _main_loop(self):
         log.info("========== ENTERING MAIN APPLICATION LOOP ==========")
+
+        # Monitor Reset Button Thread
+        monitor_button_reset_thread = threading.Thread(target=monitor_button_reset, args=(self.wifi_manager,), daemon=True)
+        monitor_button_reset_thread.start()
 
         # IPC Server Thread
         ipc_thread = threading.Thread(target=self.start_ipc_thread, daemon=True)

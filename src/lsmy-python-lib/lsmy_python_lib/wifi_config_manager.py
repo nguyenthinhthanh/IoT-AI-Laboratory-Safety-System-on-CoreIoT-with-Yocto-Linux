@@ -155,3 +155,28 @@ def configure_wifi(ssid, password):
 
     log.info("Saved WiFi '%s' successfully. Total networks remembered: %d", 
             ssid, len(existing_networks))
+
+# Reset WiFi configuration function   
+def reset_wifi_config():
+    log.info("Resetting WiFi configuration to default...")
+
+    default_content = (
+        "ctrl_interface=/var/run/wpa_supplicant\n"
+        "ctrl_interface_group=0\n"
+        "update_config=1\n"
+        "country=VN\n\n"
+        "network={\n"
+        "    key_mgmt=NONE\n"
+        "}\n"
+    )
+
+    try:
+        with open(WPA_CONF, "w") as f:
+            f.write(default_content)
+        
+        log.info("WiFi configuration has been reset successfully.")
+        
+        return True
+    except Exception as e:
+        log.error("Failed to reset WiFi config: %s", e)
+        return False
