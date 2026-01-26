@@ -10,10 +10,10 @@ import websockets
 from periphery import GPIO
 
 # ====== IPC LIBRARY ======
-from lsmy_python_lib.ipc import ipc_server_task, LAST_TELEMETRY
+from lsmy_python_lib.ipc import ipc_server_task, send_connect_wifi_signal_ipc, LAST_TELEMETRY
 
 # ====== WIFI CONFIG LIBRARY ======
-from lsmy_python_lib.wifi_config_manager import configure_wifi, update_wifi_connect_signal
+from lsmy_python_lib.wifi_config_manager import configure_wifi
 
 logging.basicConfig(
     level=logging.INFO,
@@ -54,14 +54,22 @@ async def handle(ws):
                 else:
                     if action == "connectBtn":
                         # Update the wifi config signal
-                        update_wifi_connect_signal(True)
+                        data = {
+                            "role": "backend",
+                            "status": True 
+                        }
+                        await send_connect_wifi_signal_ipc(data)
                         await ws.send(json.dumps({
                         "status": "ok",
                         "msg": "WiFi connect signal successfully"
                         }))
                     elif action == "saveBtn":
                         # Configure WiFi
-                        update_wifi_connect_signal(False)
+                        data = {
+                            "role": "backend",
+                            "status": False 
+                        }
+                        await send_connect_wifi_signal_ipc(data)
                         configure_wifi(clean_ssid, clean_pw)
 
                         await ws.send(json.dumps({

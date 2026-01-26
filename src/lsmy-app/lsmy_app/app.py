@@ -23,7 +23,9 @@
 #   - Keep clear separation between runtime logic and entrypoint
 # =============================================================================
 
+import asyncio
 import sys
+import threading
 import time
 import signal
 import ctypes
@@ -45,7 +47,7 @@ from lsmy_python_lib.wifi_mode_manager import WiFiModeManager
 
 # ====== WIFI CONFIG LIBRARY ======
 from lsmy_python_lib.wifi_config_manager import WiFiConfigManager
-from lsmy_python_lib.wifi_config_manager import update_wifi_connect_signal
+from lsmy_python_lib.wifi_config_manager import update_wifi_connect_signal, ipc_server_task
 
 # ====== WEBSERVER LIBRARY ======
 from lsmy_webserver.manager import ProvisionWebserverManager
@@ -174,6 +176,10 @@ class LsmyApplication:
     def _main_loop(self):
         log.info("========== ENTERING MAIN APPLICATION LOOP ==========")
 
+        # IPC Server Thread
+        ipc_thread = threading.Thread(target=self.start_ipc_thread, daemon=True)
+        ipc_thread.start()
+
         while self.running:
             # Main logic connections here
             if self.wifi_manager.is_wifi_connected():
@@ -256,6 +262,12 @@ class LsmyApplication:
         # say_hello()
 
         pass
+
+    # -------- Application Thread --------
+    def start_ipc_thread(self):
+        loop = asyncio.new_event_loop()
+        asyncio.set_event_loop(loop)
+        loop.run_until_complete(ipc_server_task())
 
     # -------- Subsystems --------
     def _init_sensor_subsystem(self):
