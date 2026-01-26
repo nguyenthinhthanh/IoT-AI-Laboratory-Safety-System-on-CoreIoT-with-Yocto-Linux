@@ -123,7 +123,7 @@ async def ws_server_task():
 async def telemetry_task():
     while True:
         if clients:
-            sensor = read_sensors()
+            sensor = await read_sensors()
             payload = {
                 "clients": len(clients),
                 **sensor
