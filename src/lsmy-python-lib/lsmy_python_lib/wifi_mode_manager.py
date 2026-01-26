@@ -155,11 +155,24 @@ class WiFiModeManager:
         return iface in result.stdout
 
     # Check is wifi is connected
-    def is_wifi_connected(self) -> bool:
-        # STA mode + has IP + has default route => WiFi usable
+    def is_wifi_connected(self, iface: str = "wlan0") -> bool:
+        # STA mode + has IP + Iw dev has default route => WiFi usable
+        iw_dev_result = False
+        result = subprocess.run(
+                ["iw", "dev", iface, "link"],
+                stdout=subprocess.PIPE,
+                stderr=subprocess.PIPE,
+                text=True,
+                timeout=2
+            )
+        
+        if "Connected to" in result.stdout:
+            iw_dev_result = True
+
         return (
             self.get_wifi_role() == "STA"
             and self.has_ip("wlan0")
             and self.has_default_route("wlan0")
+            and iw_dev_result
         )
 
