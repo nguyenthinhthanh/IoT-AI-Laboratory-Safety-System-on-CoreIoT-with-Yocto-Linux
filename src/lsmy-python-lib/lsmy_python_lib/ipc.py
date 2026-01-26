@@ -2,6 +2,7 @@ import os
 import json
 import asyncio
 import logging
+import random
 
 from lsmy_python_lib.wifi_config_manager import update_wifi_connect_signal
 
@@ -40,6 +41,18 @@ async def handle_client(reader, writer):
             LAST_TELEMETRY.update(telemetry)
 
             resp = {"status": "ok"}
+        elif req.get("cmd") == "request_get_data":
+            log.info("Data requested")
+
+            data = {
+                "temperature": round(random.uniform(20.0, 35.0), 2),
+                "humidity":    round(random.uniform(40.0, 80.0), 2),
+                "no2":         round(random.uniform(0.0, 0.5), 4),
+                "pm10":        round(random.uniform(10.0, 50.0), 1),
+                "pm25":        round(random.uniform(5.0, 25.0), 1),
+            }
+
+            resp = {"status": "ok", "data": data}
         elif req.get("cmd") == "connect_wifi_signal":
             role = req.get("role", "hardware")
             status = req.get("status", False)
@@ -47,20 +60,6 @@ async def handle_client(reader, writer):
             update_wifi_connect_signal(status)
 
             log.info("Connect WiFi signal received: role=%s, status=%s", role, status)
-
-            resp = {"status": "ok"}
-        elif req.get("cmd") == "send_telemetry":
-            telemetry = {
-                "temperature": float(req.get("temperature", 0)),
-                "humidity": float(req.get("humidity", 0)),
-                "no2": float(req.get("no2", 0)),
-                "pm10": float(req.get("pm10", 0)),
-                "pm25": float(req.get("pm25", 0)),
-            }
-
-            log.info("Telemetry received: %s", telemetry)
-
-            LAST_TELEMETRY.update(telemetry)
 
             resp = {"status": "ok"}
         else:
@@ -87,6 +86,24 @@ async def send_telemetry_ipc(data: dict, timeout=3):
         "no2": data.get("no2", 0),
         "pm10": data.get("pm10", 0),
         "pm25": data.get("pm25", 0),
+    }
+
+    writer.write((json.dumps(msg) + "\n").encode())
+    await writer.drain()
+
+    resp = await reader.readline()
+    writer.close()
+
+    return json.loads(resp.decode())
+
+async def send_request_get_data_ipc(timeout=3):
+    reader, writer = await asyncio.wait_for(
+        asyncio.open_unix_connection(SOCK),
+        timeout=timeout
+    )
+
+    msg = {
+        "cmd": "request_get_data",
     }
 
     writer.write((json.dumps(msg) + "\n").encode())

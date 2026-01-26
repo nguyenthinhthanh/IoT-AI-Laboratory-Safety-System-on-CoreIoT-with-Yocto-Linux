@@ -10,7 +10,7 @@ import websockets
 from periphery import GPIO
 
 # ====== IPC LIBRARY ======
-from lsmy_python_lib.ipc import ipc_server_task, send_connect_wifi_signal_ipc, LAST_TELEMETRY
+from lsmy_python_lib.ipc import send_connect_wifi_signal_ipc, send_request_get_data_ipc, LAST_TELEMETRY
 
 # ====== WIFI CONFIG LIBRARY ======
 from lsmy_python_lib.wifi_config_manager import configure_wifi
@@ -140,14 +140,25 @@ async def telemetry_task():
 
         await asyncio.sleep(5)  
     
-def read_sensors():
-    return {
-        "temperature": LAST_TELEMETRY["temperature"],
-        "humidity":    LAST_TELEMETRY["humidity"],
-        "no2":         LAST_TELEMETRY["no2"],
-        "pm10":        LAST_TELEMETRY["pm10"],
-        "pm25":        LAST_TELEMETRY["pm25"],
-    }
+async def read_sensors():
+    try:
+        resq = await send_request_get_data_ipc()
+        
+        if resq.get("status") == "ok":
+            data = resq["data"]
+            return {
+                "temperature": data["temperature"],
+                "humidity":    data["humidity"],
+                "no2":         data["no2"],
+                "pm10":        data["pm10"],
+                "pm25":        data["pm25"],
+            }
+        else:
+            log.error("IPC Server returned error: %s", resq.get("error"))
+            return None
+    except Exception as e:
+        log.error("Failed to read sensors via IPC: %s", e)
+        return None
 
 def set_gpio(gpio_num: int, on: bool):
     value = True if on else False
@@ -173,7 +184,6 @@ def shutdown_provision():
 
 async def main():
     await asyncio.gather(
-        ipc_server_task(),
         ws_server_task(),
         telemetry_task(),
     )
